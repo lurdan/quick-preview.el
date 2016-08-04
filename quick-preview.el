@@ -48,7 +48,25 @@
   :tag "Quick Preview"
   :group 'files)
 
-(defcustom quick-preview-method (if (eq system-type 'darwin) 'quick-look 'sushi)
+(defcustom quick-preview-command (cond ((eq system-type 'windows-nt)
+                                        (executable-find "C:/Program Files (x86)/Seer/Seer.exe"))
+                                       ((eq system-type 'darwin)
+                                        (executable-find "qlmanage"))
+                                       (t
+                                        (executable-find "gloobus-preview"))
+                                        )
+  "quick preview command name."
+  :group 'quick-preview
+  )
+
+(defcustom quick-preview-command-options (if (eq system-type 'darwin) "-p" nil)
+  "quick preview command option strings."
+  :group 'quick-preview
+  )
+
+(defcustom quick-preview-method (cond ((eq system-type 'darwin) 'quick-look)
+                                      ((eq system-type 'windows-nt) nil)
+                                      (t 'sushi))
   "quick preview tool. select sushi  gloobus or quick-look"
   :group 'quick-preview
   :type `(choice  ,@(mapcar (lambda (c)
@@ -96,10 +114,11 @@
     (cond
      ((eq quick-preview-method 'sushi)
       (quick-preview--sushi filename))
-     ((eq quick-preview-method 'gloobus)
-      (quick-preview--process filename '("gloobus-preview")))
-     ((eq quick-preview-method 'quick-look)
-      (quick-preview--process filename '("qlmanage" "-p"))))))
+     (quick-preview-command
+      (if quick-preview-process-command-options
+          (quick-preview--process filename '(quick-preview-command quick-preview-command-options))
+        (quick-preview--process filename '(quick-preview-command))))
+     )))
 
 (provide 'quick-preview)
 ;;; quick-preview.el ends here
